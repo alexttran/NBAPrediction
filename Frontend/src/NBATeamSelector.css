@@ -1,0 +1,214 @@
+/* Main container with gradient background */
+.main-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1e3a8a, #581c87, #312e81);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+/* Content card with glassmorphism effect */
+.content-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px);
+  border-radius: 1rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  padding: 2rem;
+  width: 100%;
+  max-width: 28rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Main title */
+.title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: white;
+  text-align: center;
+  margin-bottom: 2rem;
+  background: linear-gradient(to right, #fb923c, #ef4444);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Form container */
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Input group styling */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  position: relative;
+}
+
+/* Input labels */
+.input-label {
+  display: block;
+  color: white;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Dropdown container */
+.dropdown-container {
+  position: relative;
+}
+
+/* Team input styling */
+.team-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.5rem;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.team-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.team-input:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.team-input:focus {
+  outline: none;
+  border-color: transparent;
+  box-shadow: 0 0 0 2px #f97316;
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+  position: absolute;
+  z-index: 10;
+  width: 100%;
+  margin-top: 0.25rem;
+  background: #1f2937;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 0.5rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-height: 12rem;
+  overflow-y: auto;
+}
+
+/* Dropdown items */
+.dropdown-item {
+  padding: 0.5rem 1rem;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background: rgba(249, 115, 22, 0.2);
+}
+
+/* No results message */
+.no-results {
+  padding: 0.5rem 1rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* VS container */
+.vs-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0;
+}
+
+/* VS badge */
+.vs-badge {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #fb923c;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Matchup display */
+.matchup-display {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Matchup title */
+.matchup-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: white;
+  margin-bottom: 0.75rem;
+  text-align: center;
+}
+
+/* Matchup teams container */
+.matchup-teams {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Team names in matchup */
+.team-name {
+  color: #fb923c;
+  font-weight: 500;
+}
+
+/* @ symbol */
+.at-symbol {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.875rem;
+}
+
+/* Reset button */
+.reset-button {
+  width: 100%;
+  margin-top: 1.5rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(to right, #ef4444, #ec4899);
+  color: white;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  transform: scale(1);
+}
+
+.reset-button:hover {
+  background: linear-gradient(to right, #dc2626, #db2777);
+  transform: scale(1.05);
+}
+
+.reset-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #ef4444, 0 0 0 4px rgba(239, 68, 68, 0.1);
+}
+
+/* Responsive design */
+@media (max-width: 640px) {
+  .content-card {
+    padding: 1.5rem;
+  }
+  
+  .title {
+    font-size: 1.5rem;
+  }
+}
