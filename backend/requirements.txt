@@ -11,3 +11,5 @@ joblib>=1.3.0
 
 # Additional data science libraries (commonly used with ML models)
 numpy>=1.24.0
+
+gunicorn>=21.2.0

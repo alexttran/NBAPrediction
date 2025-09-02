@@ -291,5 +291,34 @@ def internal_error(error):
     }), 500
 
 if __name__ == '__main__':
+    print("=" * 50)
+    print("NBA Prediction API Starting...")
+    print("=" * 50)
+    
+    # Load model files on startup
+    if not load_model_files():
+        print("CRITICAL ERROR: Failed to load required model files!")
+        print("Please ensure the following files are in the same directory:")
+        print("- nba_model.joblib")
+        print("- nba_dataframe.joblib") 
+        print("- nba_predictors.joblib")
+        sys.exit(1)
+    
+    print("=" * 50)
+    print("🏀 NBA Prediction API Ready!")
+    
+    # Check if running in production (Railway sets PORT)
     port = int(os.environ.get('PORT', 5000))
-    app.run(debug=False, host='0.0.0.0', port=port)
+    is_production = 'RAILWAY_ENVIRONMENT' in os.environ or port != 5000
+    
+    if is_production:
+        print(f"Production mode: Running on port {port}")
+        print("Note: Using Flask dev server. Consider using gunicorn for better performance.")
+        print("=" * 50)
+        app.run(debug=False, host='0.0.0.0', port=port)
+    else:
+        print("Development mode: API will be available at: http://localhost:5000")
+        print("Health check: http://localhost:5000/health")
+        print("Available teams: http://localhost:5000/teams")
+        print("=" * 50)
+        app.run(debug=True, host='0.0.0.0', port=port)
