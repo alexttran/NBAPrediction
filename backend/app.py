@@ -291,25 +291,5 @@ def internal_error(error):
     }), 500
 
 if __name__ == '__main__':
-    print("=" * 50)
-    print("NBA Prediction API Starting...")
-    print("=" * 50)
-    
-    # Load model files on startup
-    if not load_model_files():
-        print("CRITICAL ERROR: Failed to load required model files!")
-        print("Please ensure the following files are in the same directory:")
-        print("- nba_model.joblib")
-        print("- nba_dataframe.joblib") 
-        print("- nba_predictors.joblib")
-        sys.exit(1)
-    
-    print("=" * 50)
-    print("🏀 NBA Prediction API Ready!")
-    print("API will be available at: http://localhost:5000")
-    print("Health check: http://localhost:5000/health")
-    print("Available teams: http://localhost:5000/teams")
-    print("=" * 50)
-    
-    # Run the app
-    app.run(debug=True, host='0.0.0.0', port=5001)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=False, host='0.0.0.0', port=port)
