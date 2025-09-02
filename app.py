@@ -113,7 +113,7 @@ def predict_winner(team1, team2, model, full_df, predictors):
             winner = team2 if pred == 1 else team1
             
         print(f"Prediction result: {winner}")
-        return jsonify(winner)
+        return winner
         
     except Exception as e:
         print(f"Error in predict_winner: {str(e)}")
@@ -125,76 +125,101 @@ def predict():
     
     # Handle preflight OPTIONS request
     if request.method == 'OPTIONS':
-        return jsonify({'status': 'ok'}), 200
+        response = jsonify({'status': 'ok'})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+        return response, 200
     
     try:
         # Check if model is loaded
         if model is None or full_df is None or predictors is None:
-            return jsonify({
+            response_data = {
                 'success': False,
                 'error': 'Model or data not loaded properly. Please check server logs.'
-            }), 500
+            }
+            return jsonify(response_data), 500
         
         # Get and validate request data
         if not request.is_json:
-            return jsonify({
+            response_data = {
                 'success': False,
                 'error': 'Request must be JSON'
-            }), 400
+            }
+            return jsonify(response_data), 400
             
         data = request.get_json()
         
         # Validate input
         if not data:
-            return jsonify({
+            response_data = {
                 'success': False,
                 'error': 'No data provided'
-            }), 400
+            }
+            return jsonify(response_data), 400
             
         if 'team1' not in data or 'team2' not in data:
-            return jsonify({
+            response_data = {
                 'success': False,
                 'error': 'Please provide both team1 and team2'
-            }), 400
+            }
+            return jsonify(response_data), 400
         
-        team1 = data['team1']
-        team2 = data['team2']
+        team1 = str(data['team1']).strip()
+        team2 = str(data['team2']).strip()
         
         # Validate team names
         if not team1 or not team2:
-            return jsonify({
+            response_data = {
                 'success': False,
                 'error': 'Team names cannot be empty'
-            }), 400
+            }
+            return jsonify(response_data), 400
             
         if team1 == team2:
-            return jsonify({
+            response_data = {
                 'success': False,
                 'error': 'Cannot predict winner when both teams are the same'
-            }), 400
+            }
+            return jsonify(response_data), 400
+        
+        print(f"Making prediction for: {team1} vs {team2}")
         
         # Make prediction
         winner = predict_winner(team1, team2, model, full_df, predictors)
         
-        return jsonify({
+        # Ensure winner is a string
+        winner = str(winner).strip()
+        
+        response_data = {
             'success': True,
             'team1': team1,
             'team2': team2,
             'predicted_winner': winner,
             'timestamp': datetime.now().isoformat()
-        })
+        }
+        
+        print(f"Prediction successful: {winner}")
+        return jsonify(response_data), 200
         
     except ValueError as e:
-        return jsonify({
+        print(f"ValueError in predict endpoint: {str(e)}")
+        response_data = {
             'success': False,
             'error': str(e)
-        }), 404
+        }
+        return jsonify(response_data), 404
     except Exception as e:
         print(f"Unexpected error in predict endpoint: {str(e)}")
-        return jsonify({
+        print(f"Error type: {type(e)}")
+        import traceback
+        traceback.print_exc()
+        
+        response_data = {
             'success': False,
             'error': f'Prediction failed: {str(e)}'
-        }), 500
+        }
+        return jsonify(response_data), 500
 
 @app.route('/teams', methods=['GET'])
 def get_teams():
