@@ -111,7 +111,7 @@ const NBATeamSelector = () => {
     setPrediction(null);
 
     try {
-      const response = await fetch('http://localhost:5001/predict', {
+      const response = await fetch('https://nbaprediction-production.up.railway.app/predict', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
