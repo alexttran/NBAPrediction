@@ -53,13 +53,10 @@ const NBATeamSelector = () => {
     setAwaySearch('');
     setHomeDropdownOpen(false);
     setAwayDropdownOpen(false);
+    setWinner('');
+    setError(null);
+    setPrediction(null);
   };
-
-  const handlePredict = async () => {
-
-    const result = await predictWinner()
-    //setWinner(result)
-  }
 
   const filterTeams = (searchTerm) => {
     return nbaTeams.filter(team => 
@@ -109,8 +106,12 @@ const NBATeamSelector = () => {
     setLoading(true);
     setError(null);
     setPrediction(null);
+    setWinner('');
 
     try {
+      console.log('Sending request to:', 'https://nbaprediction-production.up.railway.app/predict');
+      console.log('Request body:', { team1: awayTeam, team2: homeTeam });
+      
       const response = await fetch('https://nbaprediction-production.up.railway.app/predict', {
         method: 'POST',
         headers: {
@@ -122,16 +123,25 @@ const NBATeamSelector = () => {
         }),
       });
 
-      const data = await response.json();
-      setWinner(JSON.stringify(data).slice(21,24));
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
 
-      if (response.ok && data.success) {
-        setWinner(JSON.stringify(data).slice(21,24));
+      const data = await response.json();
+      console.log('Response data:', data);
+
+      if (data.success) {
+        setWinner(data.predicted_winner);
+        setPrediction(data);
       } else {
-        //setError(data.error || 'Prediction failed');
+        setError(data.error || 'Prediction failed');
       }
     } catch (err) {
-      //setError('Failed to connect to prediction service. Make sure the Flask API is running.');
+      console.error('Request failed:', err);
+      setError(`Failed to connect: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -141,10 +151,24 @@ const NBATeamSelector = () => {
     <div className="main-container">
       <div className="content-card">
         <h1 className="title">
-          NBA Matchup
+          NBA Matchup Predictor
         </h1>
         
         <div className="form-container">
+          {/* Error Display */}
+          {error && (
+            <div className="error-message" style={{
+              background: '#fee',
+              border: '1px solid #fcc',
+              borderRadius: '4px',
+              padding: '10px',
+              margin: '10px 0',
+              color: '#c00'
+            }}>
+              {error}
+            </div>
+          )}
+
           {/* Away Team Dropdown */}
           <div className="input-group">
             <label className="input-label">
@@ -234,24 +258,70 @@ const NBATeamSelector = () => {
             </div>
           )}
 
-          {/* Reset Button */}
-          {(homeTeam || awayTeam) && (
-            <button
-              onClick={handleReset}
-              className="reset-button"
-            >
-              Reset Selection
-            </button>
+          {/* Action Buttons */}
+          <div className="button-container" style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+            {(homeTeam || awayTeam) && (
+              <button
+                onClick={handleReset}
+                className="reset-button"
+                disabled={loading}
+              >
+                Reset Selection
+              </button>
+            )}
+            
+            {(homeTeam && awayTeam) && (
+              <button
+                onClick={predictWinner}
+                className="predict-button"
+                disabled={loading}
+                style={{
+                  backgroundColor: loading ? '#ccc' : '#007bff',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  padding: '10px 20px',
+                  cursor: loading ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {loading ? 'Predicting...' : 'Predict Winner'}
+              </button>
+            )}
+          </div>
+
+          {/* Winner Display */}
+          {winner && (
+            <div className="winner-display" style={{
+              marginTop: '20px',
+              padding: '15px',
+              backgroundColor: '#e8f5e8',
+              border: '2px solid #4caf50',
+              borderRadius: '8px',
+              textAlign: 'center'
+            }}>
+              <h2 style={{ margin: '0', color: '#2e7d32' }}>
+                🏆 Predicted Winner: {winner}!
+              </h2>
+              {prediction && (
+                <p style={{ margin: '10px 0 0 0', fontSize: '14px', color: '#555' }}>
+                  {prediction.team1} vs {prediction.team2}
+                </p>
+              )}
+            </div>
           )}
-          {(homeTeam && awayTeam) && (
-            <button
-              onClick={predictWinner}
-              className="reset-button"
-            >
-              Predict Winner
-            </button>
+
+          {/* Loading State */}
+          {loading && (
+            <div className="loading-display" style={{
+              marginTop: '20px',
+              padding: '15px',
+              backgroundColor: '#f0f0f0',
+              borderRadius: '8px',
+              textAlign: 'center'
+            }}>
+              <p>🔮 Making prediction...</p>
+            </div>
           )}
-          <h2> Winner: {winner}!</h2>
         </div>
       </div>
     </div>

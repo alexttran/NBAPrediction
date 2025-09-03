@@ -8,11 +8,8 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# Configure CORS with specific settings for better security
-CORS(app, 
-     origins=["http://localhost:3000", "http://127.0.0.1:3000", "https://your-frontend-domain.vercel.app"],  # Add your frontend URLs
-     methods=["GET", "POST", "OPTIONS"],
-     allow_headers=["Content-Type", "Authorization"])
+# Configure CORS to allow all origins during development/testing
+CORS(app)
 
 # Global variables for model and data
 model = None
@@ -119,21 +116,19 @@ def predict_winner(team1, team2, model, full_df, predictors):
         print(f"Error in predict_winner: {str(e)}")
         raise
 
-@app.route('/predict', methods=['POST', 'OPTIONS'])
+@app.route('/predict', methods=['POST'])
 def predict():
     """Predict winner endpoint with comprehensive error handling"""
     
-    # Handle preflight OPTIONS request
-    if request.method == 'OPTIONS':
-        response = jsonify({'status': 'ok'})
-        response.headers.add('Access-Control-Allow-Origin', '*')
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-        return response, 200
+    print("=== PREDICT ENDPOINT CALLED ===")
+    print(f"Method: {request.method}")
+    print(f"Request headers: {dict(request.headers)}")
+    print(f"Request data: {request.get_data()}")
     
     try:
         # Check if model is loaded
         if model is None or full_df is None or predictors is None:
+            print("ERROR: Model or data not loaded properly")
             response_data = {
                 'success': False,
                 'error': 'Model or data not loaded properly. Please check server logs.'
@@ -142,6 +137,7 @@ def predict():
         
         # Get and validate request data
         if not request.is_json:
+            print("ERROR: Request is not JSON")
             response_data = {
                 'success': False,
                 'error': 'Request must be JSON'
@@ -149,9 +145,11 @@ def predict():
             return jsonify(response_data), 400
             
         data = request.get_json()
+        print(f"Parsed JSON data: {data}")
         
         # Validate input
         if not data:
+            print("ERROR: No data provided")
             response_data = {
                 'success': False,
                 'error': 'No data provided'
@@ -159,6 +157,7 @@ def predict():
             return jsonify(response_data), 400
             
         if 'team1' not in data or 'team2' not in data:
+            print("ERROR: Missing team1 or team2")
             response_data = {
                 'success': False,
                 'error': 'Please provide both team1 and team2'
@@ -168,8 +167,11 @@ def predict():
         team1 = str(data['team1']).strip()
         team2 = str(data['team2']).strip()
         
+        print(f"Team1: '{team1}', Team2: '{team2}'")
+        
         # Validate team names
         if not team1 or not team2:
+            print("ERROR: Empty team names")
             response_data = {
                 'success': False,
                 'error': 'Team names cannot be empty'
@@ -177,6 +179,7 @@ def predict():
             return jsonify(response_data), 400
             
         if team1 == team2:
+            print("ERROR: Same teams provided")
             response_data = {
                 'success': False,
                 'error': 'Cannot predict winner when both teams are the same'
