@@ -21,28 +21,53 @@ def load_model_files():
     global model, full_df, predictors
     
     try:
+        print("=" * 50)
+        print("ATTEMPTING TO LOAD MODEL FILES")
+        print("=" * 50)
+        print(f"Current working directory: {os.getcwd()}")
+        print(f"Files in current directory: {os.listdir('.')}")
+        
         # Check if files exist before loading
         required_files = ['nba_model.joblib', 'nba_dataframe.joblib', 'nba_predictors.joblib']
         missing_files = []
         
         for file_name in required_files:
-            if not os.path.exists(file_name):
+            file_path = os.path.join('.', file_name)
+            exists = os.path.exists(file_path)
+            size = os.path.getsize(file_path) if exists else 0
+            print(f"File: {file_name} - Exists: {exists} - Size: {size} bytes")
+            if not exists:
                 missing_files.append(file_name)
         
         if missing_files:
             print(f"ERROR: Missing required files: {missing_files}")
             print("Please ensure all model files are in the same directory as this script.")
+            
+            # Try to find files in subdirectories
+            print("\nSearching for files in subdirectories...")
+            for root, dirs, files in os.walk('.'):
+                for file in files:
+                    if file.endswith('.joblib'):
+                        print(f"Found .joblib file: {os.path.join(root, file)}")
+            
             return False
         
         # Load the files
-        print("Loading model files...")
-        model = joblib.load('nba_model.joblib')
-        full_df = joblib.load('nba_dataframe.joblib')
-        predictors = joblib.load('nba_predictors.joblib')
+        print("\nAttempting to load files...")
         
-        print(f"✓ Model loaded successfully!")
-        print(f"✓ DataFrame loaded with {len(full_df)} records")
+        print("Loading model...")
+        model = joblib.load('nba_model.joblib')
+        print(f"✓ Model loaded successfully! Type: {type(model)}")
+        
+        print("Loading dataframe...")
+        full_df = joblib.load('nba_dataframe.joblib')
+        print(f"✓ DataFrame loaded with {len(full_df)} records, shape: {full_df.shape}")
+        print(f"DataFrame columns: {list(full_df.columns)}")
+        
+        print("Loading predictors...")
+        predictors = joblib.load('nba_predictors.joblib')
         print(f"✓ Predictors loaded: {len(predictors)} features")
+        print(f"First 5 predictors: {predictors[:5] if len(predictors) > 5 else predictors}")
         
         # Validate data structure
         if full_df is not None:
@@ -50,14 +75,26 @@ def load_model_files():
             missing_columns = [col for col in required_columns if col not in full_df.columns]
             if missing_columns:
                 print(f"WARNING: Missing required columns in DataFrame: {missing_columns}")
+                print(f"Available columns: {list(full_df.columns)}")
                 return False
+            
+            # Show sample of team data
+            print(f"Sample team_x values: {full_df['team_x'].unique()[:10]}")
+            print(f"Sample team_y values: {full_df['team_y'].unique()[:10]}")
                 
+        print("=" * 50)
+        print("ALL MODEL FILES LOADED SUCCESSFULLY!")
+        print("=" * 50)
         return True
         
+    except FileNotFoundError as e:
+        print(f"ERROR: File not found: {str(e)}")
+        return False
     except Exception as e:
         print(f"ERROR loading model files: {str(e)}")
-        print(f"Current working directory: {os.getcwd()}")
-        print(f"Files in directory: {os.listdir('.')}")
+        print(f"Error type: {type(e)}")
+        import traceback
+        traceback.print_exc()
         return False
 
 def predict_winner(team1, team2, model, full_df, predictors):
@@ -224,6 +261,29 @@ def predict():
         }
         return jsonify(response_data), 500
 
+@app.route('/debug', methods=['GET'])
+def debug_info():
+    """Debug endpoint to check system state"""
+    try:
+        debug_data = {
+            'model_loaded': model is not None,
+            'dataframe_loaded': full_df is not None,
+            'predictors_loaded': predictors is not None,
+            'dataframe_shape': full_df.shape if full_df is not None else None,
+            'predictors_count': len(predictors) if predictors is not None else None,
+            'sample_teams': {
+                'team_x_sample': list(full_df['team_x'].unique()[:10]) if full_df is not None else None,
+                'team_y_sample': list(full_df['team_y'].unique()[:10]) if full_df is not None else None
+            } if full_df is not None else None,
+            'columns': list(full_df.columns) if full_df is not None else None
+        }
+        return jsonify(debug_data)
+    except Exception as e:
+        return jsonify({
+            'error': str(e),
+            'error_type': str(type(e))
+        }), 500
+
 @app.route('/teams', methods=['GET'])
 def get_teams():
     """Get available teams endpoint"""
@@ -293,23 +353,30 @@ def internal_error(error):
         'error': 'Internal server error'
     }), 500
 
-if __name__ == '__main__':
-    print("=" * 50)
-    print("NBA Prediction API Starting...")
-    print("=" * 50)
-    
-    # Load model files on startup
-    if not load_model_files():
-        print("CRITICAL ERROR: Failed to load required model files!")
-        print("Please ensure the following files are in the same directory:")
-        print("- nba_model.joblib")
-        print("- nba_dataframe.joblib") 
-        print("- nba_predictors.joblib")
+# Load model files when the module is imported (not just when run directly)
+print("=" * 50)
+print("NBA Prediction API Starting...")
+print("=" * 50)
+
+# Load model files on startup - this runs when the module is imported
+print("Calling load_model_files()...")
+model_load_success = load_model_files()
+
+if not model_load_success:
+    print("CRITICAL ERROR: Failed to load required model files!")
+    print("Please ensure the following files are in the same directory:")
+    print("- nba_model.joblib")
+    print("- nba_dataframe.joblib") 
+    print("- nba_predictors.joblib")
+    # Don't exit in production, just log the error
+    if __name__ == '__main__':
         sys.exit(1)
-    
+else:
     print("=" * 50)
     print("🏀 NBA Prediction API Ready!")
-    
+    print("=" * 50)
+
+if __name__ == '__main__':
     # Check if running in production (Railway sets PORT)
     port = int(os.environ.get('PORT', 5000))
     is_production = 'RAILWAY_ENVIRONMENT' in os.environ or port != 5000
