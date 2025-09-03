@@ -9,7 +9,13 @@ from datetime import datetime
 app = Flask(__name__)
 
 # Configure CORS to allow all origins during development/testing
-CORS(app)
+#CORS(app)
+
+CORS(app, origins=[
+    "http://localhost:3000",
+    "https://nba-prediction-seven.vercel.app",  # Your Vercel URL
+    #"https://your-custom-domain.com"     # If you have a custom domain
+])
 
 # Global variables for model and data
 model = None
